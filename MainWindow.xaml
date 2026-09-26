@@ -1,0 +1,14 @@
+<Window x:Class="LocalRack.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="LocalRack" Height="650" Width="1000"
+        WindowStartupLocation="CenterScreen"
+        Style="{StaticResource WindowStyle}"
+        Closing="MainWindow_OnClosing">
+    <Grid>
+        <TabControl x:Name="RootTabControl" Style="{StaticResource TabControlStyle}"
+                    SelectionChanged="RootTabControl_OnSelectionChanged">
+            <TabItem x:Name="HomeTabItem" Header="Home" Style="{StaticResource TabItemStyle}" />
+        </TabControl>
+    </Grid>
+</Window>
