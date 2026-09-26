@@ -1,0 +1,105 @@
+<UserControl x:Class="LocalRack.Views.HomeView"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:conv="clr-namespace:LocalRack.Converters">
+    <UserControl.Resources>
+        <conv:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+    </UserControl.Resources>
+    <DockPanel Background="{StaticResource WindowBackgroundBrush}">
+        <Grid DockPanel.Dock="Top" Margin="16,16,16,8">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="Auto" />
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <Image Grid.Column="0" Source="{StaticResource LogoImage}" Width="40" Height="40"
+                   Margin="0,0,12,0" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" VerticalAlignment="Center">
+                <TextBlock Text="Vault" FontSize="20" FontWeight="SemiBold" />
+                <TextBlock Text="Click a project to open it in a tab." FontSize="12"
+                           Foreground="{StaticResource SecondaryTextBrush}" Margin="0,2,0,0" />
+            </StackPanel>
+            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <Button Content="Settings" Margin="0,0,6,0"
+                        Style="{StaticResource ButtonStyle}" Click="SettingsButton_OnClick" />
+                <Button Content="Add Project"
+                        Style="{StaticResource ButtonStyle}" Click="AddProjectButton_OnClick" />
+            </StackPanel>
+        </Grid>
+
+        <TextBlock x:Name="EmptyText" DockPanel.Dock="Top" Margin="16,24,16,0"
+                   Foreground="{StaticResource SecondaryTextBrush}"
+                   Text="No projects yet. Use &quot;Add Project&quot; to create one." />
+
+        <ListBox x:Name="ProjectsListBox" Margin="16,0,16,16" BorderThickness="0" Background="Transparent"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Margin" Value="0,0,0,8" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <ContentPresenter />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border x:Name="Card"
+                            Background="{StaticResource CardBackgroundBrush}"
+                            BorderBrush="{StaticResource BorderBrush}"
+                            BorderThickness="1"
+                            CornerRadius="4"
+                            Padding="14"
+                            Cursor="Hand"
+                            MouseLeftButtonUp="ProjectCard_OnMouseLeftButtonUp">
+                        <Border.ContextMenu>
+                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Open" Click="OpenMenuItem_OnClick" />
+                                <MenuItem Header="Rename…" Click="RenameMenuItem_OnClick" />
+                                <Separator />
+                                <MenuItem Header="Delete Project" Click="DeleteMenuItem_OnClick" />
+                            </ContextMenu>
+                        </Border.ContextMenu>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center">
+                                <TextBlock Text="{Binding Project.Name}" FontSize="15" FontWeight="SemiBold"
+                                           TextTrimming="CharacterEllipsis" />
+                                <TextBlock Text="{Binding ServiceCount, StringFormat='{}{0} service(s)'}"
+                                           Foreground="{StaticResource SecondaryTextBrush}" FontSize="12" Margin="0,2,0,0" />
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="{StaticResource StatusRunningBrush}"
+                                    CornerRadius="8" Padding="8,3" Margin="0,0,12,0" VerticalAlignment="Center"
+                                    Visibility="{Binding RunningCount, Converter={StaticResource CountToVisibilityConverter}}">
+                                <TextBlock Text="{Binding RunningCount, StringFormat='{}{0} running'}"
+                                           Foreground="#FAFAF7" FontSize="11" FontWeight="SemiBold" />
+                            </Border>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Open" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"
+                                        Click="OpenButton_OnClick" />
+                                <Button Content="Rename" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"
+                                        Click="RenameButton_OnClick" />
+                                <Button Content="Delete" Style="{StaticResource ButtonStyle}"
+                                        Foreground="{StaticResource ErrorTextBrush}"
+                                        Click="DeleteButton_OnClick" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                    <DataTemplate.Triggers>
+                        <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource StatusStoppedBrush}" />
+                        </Trigger>
+                    </DataTemplate.Triggers>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+    </DockPanel>
+</UserControl>
