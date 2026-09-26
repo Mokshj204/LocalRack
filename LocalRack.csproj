@@ -1,0 +1,50 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net8.0-windows</TargetFramework>
+    <RootNamespace>LocalRack</RootNamespace>
+    <AssemblyName>LocalRack</AssemblyName>
+    <Product>LocalRack</Product>
+    <AssemblyTitle>LocalRack</AssemblyTitle>
+    <Description>Run and manage local development services.</Description>
+    <ApplicationIcon>Assets\LocalRack.ico</ApplicationIcon>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <UseWPF>true</UseWPF>
+    <!-- Only for the tray icon (NotifyIcon); see Services/TrayIcon.cs. -->
+    <UseWindowsForms>true</UseWindowsForms>
+    <!-- LibraryImport source generator (Job Object P/Invoke) emits unsafe marshalling code. -->
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+
+    <!-- Publish: self-contained single-file exe. -->
+    <PublishSelfContained>true</PublishSelfContained>
+    <PublishSingleFile>true</PublishSingleFile>
+    <IncludeNativeLibrariesForSelfExtract>true</IncludeNativeLibrariesForSelfExtract>
+    <!-- Trimming is deliberately OFF. Microsoft does not support trimming WPF, and here it was
+         actively harmful: the trimmed exe hard-crashed the runtime (0xC0000005 / 0x80131506)
+         on clipboard copy, because clipboard access goes through COM interop that trimming
+         breaks. It also saved almost nothing, since WPF's own assemblies are not trimmable. -->
+    <PublishTrimmed>false</PublishTrimmed>
+
+    <!-- Size / idle-RAM tweaks -->
+    <!-- NOT InvariantGlobalization: WPF's text/caret system constructs a CultureInfo for the active
+         keyboard input language whenever a text control gets focus; under invariant-only
+         globalization that throws the instant any TextBox is focused. -->
+    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <ServerGarbageCollection>false</ServerGarbageCollection>
+    <ConcurrentGarbageCollection>true</ConcurrentGarbageCollection>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Resource Include="Assets\LocalRack.ico" />
+  </ItemGroup>
+
+  <!-- UseWindowsForms adds these as implicit global usings, which would make WPF types
+       (Application, Button, MessageBox, ...) ambiguous. WinForms is referenced explicitly where used. -->
+  <ItemGroup>
+    <Using Remove="System.Windows.Forms" />
+    <Using Remove="System.Drawing" />
+  </ItemGroup>
+
+</Project>

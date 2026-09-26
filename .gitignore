@@ -1,0 +1,9 @@
+# Build output
+bin/
+obj/
+publish/
+
+# IDE / editor state
+.vs/
+*.user
+*.suo
