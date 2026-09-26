@@ -1,0 +1,70 @@
+<Window x:Class="LocalRack.Dialogs.ServiceDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Height="370" Width="480"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Style="{StaticResource WindowStyle}"
+        ResizeMode="NoResize">
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Service name" Margin="0,0,0,4" />
+        <TextBox Grid.Row="1" x:Name="NameTextBox" Margin="0,0,0,10" Style="{StaticResource TextBoxStyle}" />
+
+        <TextBlock Grid.Row="2" Text="Working directory" Margin="0,0,0,4" />
+        <Grid Grid.Row="3" Margin="0,0,0,10">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBox Grid.Column="0" x:Name="DirectoryTextBox" Margin="0,0,8,0" Style="{StaticResource TextBoxStyle}" />
+            <Button Grid.Column="1" Content="Browse…" Style="{StaticResource ButtonStyle}" Click="BrowseButton_OnClick" />
+        </Grid>
+
+        <Grid Grid.Row="4" Margin="0,0,0,4">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <TextBlock Grid.Column="0" Text="Command" VerticalAlignment="Center" />
+            <StackPanel Grid.Column="1" Orientation="Horizontal">
+                <TextBlock Text="Run with" VerticalAlignment="Center" Margin="0,0,6,0"
+                           Foreground="{StaticResource SecondaryTextBrush}" />
+                <ComboBox x:Name="ShellComboBox" Width="130" SelectionChanged="ShellComboBox_OnSelectionChanged">
+                    <ComboBoxItem Content="PowerShell" />
+                    <ComboBoxItem Content="Command Prompt" />
+                </ComboBox>
+            </StackPanel>
+        </Grid>
+        <TextBox Grid.Row="5" x:Name="CommandTextBox" Margin="0,0,0,4" Style="{StaticResource TextBoxStyle}"
+                 FontFamily="Consolas" />
+        <TextBlock Grid.Row="6" x:Name="CommandHintText" TextWrapping="Wrap"
+                   Foreground="{StaticResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,6" />
+
+        <TextBlock Grid.Row="7" x:Name="InfoText" Foreground="{StaticResource SecondaryTextBrush}" FontSize="11"
+                   Margin="0,0,0,6" Visibility="Collapsed" TextWrapping="Wrap"
+                   Text="This service is running. Changes take effect the next time it starts." />
+
+        <TextBlock Grid.Row="8" x:Name="ErrorText" Foreground="{StaticResource ErrorTextBrush}"
+                   VerticalAlignment="Top" Visibility="Collapsed" TextWrapping="Wrap" />
+
+        <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right">
+            <Button Content="Cancel" Width="80" Margin="0,0,8,0" IsCancel="True"
+                    Style="{StaticResource ButtonStyle}" />
+            <Button x:Name="OkButton" Content="Create" Width="80" IsDefault="True"
+                    Style="{StaticResource ButtonStyle}" Click="OkButton_OnClick" />
+        </StackPanel>
+    </Grid>
+</Window>
