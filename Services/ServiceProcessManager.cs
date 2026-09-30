@@ -23,14 +23,23 @@ public sealed partial class ServiceProcessManager
 
     public int RunningCount => _runningServices.Count;
     private readonly DispatcherTimer _flushTimer;
+    // 1 while a flush is queued or pending on the timer; set from reader threads, cleared on the UI thread.
+    private int _flushScheduled;
 
     public ServiceProcessManager()
     {
+        // One-shot: armed only when output arrives, so a quiet service costs no wakeups.
         _flushTimer = new DispatcherTimer(DispatcherPriority.Background)
         {
             Interval = FlushInterval
         };
-        _flushTimer.Tick += (_, _) => FlushPendingLines();
+        _flushTimer.Tick += (_, _) =>
+        {
+            _flushTimer.Stop();
+            // Clear before draining: lines that arrive mid-drain schedule the next flush.
+            Volatile.Write(ref _flushScheduled, 0);
+            FlushPendingLines();
+        };
     }
 
     public void Start(Service service)
@@ -53,7 +62,7 @@ public sealed partial class ServiceProcessManager
         process.OutputDataReceived += (_, e) =>
         {
             if (e.Data is null) return;
-            service.PendingLines.Enqueue(stdoutParser.Parse(e.Data, false, null, null));
+            Enqueue(service, stdoutParser.Parse(e.Data, false, null, null));
         };
         process.ErrorDataReceived += (_, e) =>
         {
@@ -61,7 +70,7 @@ public sealed partial class ServiceProcessManager
             // Many tools (npm notices, uvicorn/Python logging) write normal output to stderr,
             // so only lines that actually look like errors are flagged.
             var isError = ErrorPattern().IsMatch(AnsiParser.StripAnsi(e.Data));
-            service.PendingLines.Enqueue(isError
+            Enqueue(service, isError
                 ? stderrParser.Parse(e.Data, true, "[ERR] ", ErrorColor)
                 : stderrParser.Parse(e.Data, false, null, null));
         };
@@ -109,10 +118,6 @@ public sealed partial class ServiceProcessManager
         service.Status = ServiceStatus.Running;
         _runningServices.Add(service);
         RunningCountChanged?.Invoke(_runningServices.Count);
-        if (_runningServices.Count == 1)
-        {
-            _flushTimer.Start();
-        }
     }
 
     public void Stop(Service service)
@@ -276,16 +281,22 @@ public sealed partial class ServiceProcessManager
         {
             RunningCountChanged?.Invoke(_runningServices.Count);
         }
-        if (_runningServices.Count == 0)
-        {
-            _flushTimer.Stop();
-        }
     }
 
     private static void AppendDirect(Service service, LogLine line)
     {
         service.LogBuffer.Add(line);
         TrimRingBuffer(service.LogBuffer);
+    }
+
+    /// <summary>Called on stdout/stderr reader threads. Batches lines and arms the flush timer at most once per batch.</summary>
+    private void Enqueue(Service service, LogLine line)
+    {
+        service.PendingLines.Enqueue(line);
+        if (Interlocked.Exchange(ref _flushScheduled, 1) == 0)
+        {
+            _flushTimer.Dispatcher.BeginInvoke(_flushTimer.Start, DispatcherPriority.Background);
+        }
     }
 
     private void FlushPendingLines()
