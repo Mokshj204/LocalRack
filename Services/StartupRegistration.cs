@@ -16,7 +16,7 @@ public static class StartupRegistration
     public static bool IsEnabled()
     {
         using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath);
-        return key?.GetValue(AppPaths.AppName) is string;
+        return key?.GetValue(AppPaths.InstanceId) is string;
     }
 
     public static void SetEnabled(bool enabled)
@@ -24,11 +24,11 @@ public static class StartupRegistration
         using var key = Registry.CurrentUser.CreateSubKey(RunKeyPath);
         if (enabled)
         {
-            key.SetValue(AppPaths.AppName, LaunchCommand);
+            key.SetValue(AppPaths.InstanceId, LaunchCommand);
         }
         else
         {
-            key.DeleteValue(AppPaths.AppName, throwOnMissingValue: false);
+            key.DeleteValue(AppPaths.InstanceId, throwOnMissingValue: false);
         }
     }
 
@@ -38,9 +38,9 @@ public static class StartupRegistration
         try
         {
             using var key = Registry.CurrentUser.OpenSubKey(RunKeyPath, writable: true);
-            if (key?.GetValue(AppPaths.AppName) is string current && current != LaunchCommand)
+            if (key?.GetValue(AppPaths.InstanceId) is string current && current != LaunchCommand)
             {
-                key.SetValue(AppPaths.AppName, LaunchCommand);
+                key.SetValue(AppPaths.InstanceId, LaunchCommand);
             }
         }
         catch (Exception)

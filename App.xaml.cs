@@ -9,9 +9,10 @@ namespace LocalRack;
 public partial class App : Application
 {
     // Per-user names: one LocalRack per signed-in user.
-    private static readonly string InstanceName = $"LocalRack-{Environment.UserName}";
+    private static readonly string InstanceName = $"{AppPaths.InstanceId}-{Environment.UserName}";
 
     private Mutex? _instanceMutex;
+    private Mutex? _runningMutex;
     private EventWaitHandle? _activateSignal;
 
     public App()
@@ -34,6 +35,8 @@ public partial class App : Application
             Shutdown();
             return;
         }
+
+        _runningMutex = new Mutex(false, AppPaths.RunningMutexName);
 
         AppPaths.MigrateLegacyData();
         SettingsStore.Load();
@@ -66,6 +69,7 @@ public partial class App : Application
 
     protected override void OnExit(ExitEventArgs e)
     {
+        _runningMutex?.Dispose();
         _instanceMutex?.Dispose();
         base.OnExit(e);
     }

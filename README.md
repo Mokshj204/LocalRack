@@ -22,17 +22,20 @@ The release download is self-contained: you do not need to install .NET to run i
 
 ## Install
 
-1. Open the repository's **Releases** page and download `LocalRack-vX.Y.Z-win-x64.exe` from the latest release.
-2. Move it somewhere permanent, for example `C:\Tools\LocalRack\LocalRack.exe`.
-3. Run it.
+Open the repository's **Releases** page and download one of these from the latest release:
 
-The executable is not code-signed yet, so Windows SmartScreen may show **Windows protected your PC** the first time. Choose **More info**, then **Run anyway**.
+- **Installer (recommended):** `LocalRack-vX.Y.Z-win-x64-setup.exe`. Run it and approve the administrator prompt. It installs LocalRack to `C:\Program Files\LocalRack`, adds it to the Start menu, and registers an uninstaller under **Settings > Apps > Installed apps**. To upgrade, exit LocalRack and run the newer installer; your projects and settings are kept.
+- **Portable exe:** `LocalRack-vX.Y.Z-win-x64.exe`. Move it somewhere permanent, for example `C:\Tools\LocalRack\LocalRack.exe`, and run it. Nothing is installed.
+
+Neither file is code-signed yet, so Windows SmartScreen may show **Windows protected your PC** the first time. Choose **More info**, then **Run anyway**.
 
 To verify a download, compare its hash with `SHA256SUMS.txt` from the same release:
 
 ```powershell
-Get-FileHash .\LocalRack-v1.0.0-win-x64.exe -Algorithm SHA256
+Get-FileHash .\LocalRack-v1.0.0-win-x64-setup.exe -Algorithm SHA256
 ```
+
+Uninstalling keeps your data in `%APPDATA%\LocalRack`. Delete that folder too if you want a clean removal.
 
 ## Getting started
 
@@ -101,6 +104,21 @@ dotnet run --project LocalRack.csproj
 dotnet publish LocalRack.csproj -c Release -r win-x64 -o .\publish
 ```
 
+### Developing alongside an installed copy
+
+Debug builds run as a separate app, **LocalRack-Dev**, so you can develop while your installed LocalRack keeps your services running. A Debug build has its own data folder (`%APPDATA%\LocalRack-Dev`), its own single-instance lock, and its own **Start with Windows** entry. It never reads or changes the installed copy's projects or settings. Release builds use the normal `LocalRack` names.
+
+### Building the installer locally
+
+Install [Inno Setup 6](https://jrsoftware.org/isdl.php) (`winget install --id JRSoftware.InnoSetup -e`), publish the exe, then compile `installer\LocalRack.iss`:
+
+```powershell
+dotnet publish LocalRack.csproj -c Release -r win-x64 -o .\publish
+& "$env:LOCALAPPDATA\Programs\Inno Setup 6\ISCC.exe" /DAppVersion=1.0.0 installer\LocalRack.iss
+```
+
+The installer is written to `.\dist`. Use the `ISCC.exe` path where Inno Setup is installed on your machine. If compiling fails with `EndUpdateResource failed`, Windows Defender's Controlled Folder Access is probably blocking writes to the repository folder. Add `/O"$env:TEMP"` to write the installer elsewhere, or allow `ISCC.exe` through Controlled Folder Access.
+
 ### Project layout
 
 | Folder | Contents |
@@ -110,6 +128,7 @@ dotnet publish LocalRack.csproj -c Release -r win-x64 -o .\publish
 | `Views/` | Home page, project tabs, and Settings |
 | `Dialogs/` | Add and edit dialogs for projects and services |
 | `Themes/` | Colors, control styles, and the vector logo |
+| `installer/` | Inno Setup script for the Windows installer |
 
 ## Releasing
 
@@ -123,7 +142,7 @@ The CI workflow (`.github/workflows/ci.yml`) builds every push and pull request 
    git push origin main vX.Y.Z
    ```
 
-The workflow builds the exe with the version from the tag and attaches it, together with `SHA256SUMS.txt` and your release notes, to a new release. It fails early if the tag is not in `vX.Y.Z` form or the notes file is missing.
+The workflow builds the portable exe and the installer with the version from the tag, and attaches both, together with `SHA256SUMS.txt` and your release notes, to a new release. It fails early if the tag is not in `vX.Y.Z` form or the notes file is missing.
 
 ## License
 
