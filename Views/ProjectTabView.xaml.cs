@@ -26,8 +26,18 @@ public partial class ProjectTabView : UserControl
         _project = project;
         _processManager = processManager;
         ServicesListBox.ItemsSource = _project.Services;
-        _project.Services.CollectionChanged += (_, _) => UpdateEmptyState();
+        foreach (var service in _project.Services) service.PropertyChanged += OnServiceStatusChanged;
+        _project.Services.CollectionChanged += (_, e) =>
+        {
+            if (e.OldItems is not null)
+                foreach (Service s in e.OldItems) s.PropertyChanged -= OnServiceStatusChanged;
+            if (e.NewItems is not null)
+                foreach (Service s in e.NewItems) s.PropertyChanged += OnServiceStatusChanged;
+            UpdateEmptyState();
+            UpdateBulkButtons();
+        };
         UpdateEmptyState();
+        UpdateBulkButtons();
         ShowService(null);
     }
 
@@ -143,6 +153,22 @@ public partial class ProjectTabView : UserControl
         {
             _processManager.Start(service);
         }
+    }
+
+    private void StartAllButton_OnClick(object sender, RoutedEventArgs e) => _processManager.StartAll(_project);
+
+    private void StopAllButton_OnClick(object sender, RoutedEventArgs e) => _processManager.StopAll(_project);
+
+    private void UpdateBulkButtons()
+    {
+        var running = _project.Services.Count(s => s.Status == ServiceStatus.Running);
+        StartAllButton.IsEnabled = running < _project.Services.Count;
+        StopAllButton.IsEnabled = running > 0;
+    }
+
+    private void OnServiceStatusChanged(object? sender, System.ComponentModel.PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Service.Status)) UpdateBulkButtons();
     }
 
     private void AddServiceButton_OnClick(object sender, RoutedEventArgs e)

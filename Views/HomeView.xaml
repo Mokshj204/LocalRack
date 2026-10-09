@@ -83,6 +83,10 @@
                                            Foreground="#FAFAF7" FontSize="11" FontWeight="SemiBold" />
                             </Border>
                             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Start All" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"
+                                        IsEnabled="{Binding CanStartAll}" Click="StartAllButton_OnClick" />
+                                <Button Content="Stop All" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"
+                                        IsEnabled="{Binding CanStopAll}" Click="StopAllButton_OnClick" />
                                 <Button Content="Open" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"
                                         Click="OpenButton_OnClick" />
                                 <Button Content="Rename" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"

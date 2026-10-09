@@ -18,6 +18,19 @@ public partial class HomeView : UserControl
     public event Action? ProjectsChanged;
     public event Action? SettingsRequested;
 
+    public event Action<Project>? StartAllRequested;
+    public event Action<Project>? StopAllRequested;
+
+    private void StartAllButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (CardOf(sender) is { } card) StartAllRequested?.Invoke(card.Project);
+    }
+
+    private void StopAllButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        if (CardOf(sender) is { } card) StopAllRequested?.Invoke(card.Project);
+    }
+
     private void SettingsButton_OnClick(object sender, RoutedEventArgs e) => SettingsRequested?.Invoke();
 
     public HomeView(ObservableCollection<Project> projects)
@@ -131,8 +144,27 @@ public sealed class ProjectCardViewModel : INotifyPropertyChanged
     public ProjectCardViewModel(Project project)
     {
         Project = project;
+        foreach (var service in project.Services) service.PropertyChanged += OnServiceChanged;
+        project.Services.CollectionChanged += OnServicesChanged;
         Refresh();
     }
+
+    private void OnServiceChanged(object? sender, PropertyChangedEventArgs e)
+    {
+        if (e.PropertyName == nameof(Service.Status)) Refresh();
+    }
+
+    private void OnServicesChanged(object? sender, System.Collections.Specialized.NotifyCollectionChangedEventArgs e)
+    {
+        if (e.OldItems is not null)
+            foreach (Service s in e.OldItems) s.PropertyChanged -= OnServiceChanged;
+        if (e.NewItems is not null)
+            foreach (Service s in e.NewItems) s.PropertyChanged += OnServiceChanged;
+        Refresh();
+    }
+
+    public bool CanStartAll => RunningCount < ServiceCount;
+    public bool CanStopAll => RunningCount > 0;
 
     private int _serviceCount;
     public int ServiceCount
@@ -162,6 +194,8 @@ public sealed class ProjectCardViewModel : INotifyPropertyChanged
     {
         ServiceCount = Project.Services.Count;
         RunningCount = Project.Services.Count(s => s.Status == ServiceStatus.Running);
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanStartAll)));
+        PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(CanStopAll)));
     }
 
     public event PropertyChangedEventHandler? PropertyChanged;

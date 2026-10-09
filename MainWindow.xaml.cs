@@ -33,6 +33,8 @@ public partial class MainWindow : Window
         _homeView.ProjectDeleting += OnProjectDeleting;
         _homeView.ProjectsChanged += SaveProjects;
         _homeView.SettingsRequested += OpenSettings;
+        _homeView.StartAllRequested += project => _processManager.StartAll(project);
+        _homeView.StopAllRequested += project => _processManager.StopAll(project);
         HomeTabItem.Content = _homeView;
 
         foreach (var id in _uiStateRepository.Load().OpenProjectIds)
