@@ -14,7 +14,7 @@
     </UserControl.Resources>
     <Grid Background="{StaticResource WindowBackgroundBrush}">
         <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="280" MinWidth="200" />
+            <ColumnDefinition Width="290" MinWidth="250" />
             <ColumnDefinition Width="5" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
@@ -26,8 +26,14 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
                 <TextBlock Grid.Column="0" Text="Services" FontWeight="SemiBold" VerticalAlignment="Center" />
-                <Button Grid.Column="1" Content="Add Service" Style="{StaticResource ButtonStyle}"
-                        Click="AddServiceButton_OnClick" />
+                <StackPanel Grid.Column="1" Orientation="Horizontal">
+                    <Button x:Name="StartAllButton" Content="Start All" Margin="0,0,6,0"
+                            Style="{StaticResource ButtonStyle}" Click="StartAllButton_OnClick" />
+                    <Button x:Name="StopAllButton" Content="Stop All" Margin="0,0,6,0"
+                            Style="{StaticResource ButtonStyle}" Click="StopAllButton_OnClick" />
+                    <Button Content="Add Service" Style="{StaticResource ButtonStyle}"
+                            Click="AddServiceButton_OnClick" />
+                </StackPanel>
             </Grid>
             <TextBlock x:Name="EmptyText" DockPanel.Dock="Top" Margin="12,8" TextWrapping="Wrap"
                        Foreground="{StaticResource SecondaryTextBrush}"

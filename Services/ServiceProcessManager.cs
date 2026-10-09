@@ -147,6 +147,23 @@ public sealed partial class ServiceProcessManager
         RemoveFromRunning(service);
     }
 
+    /// <summary>Starts every service in the project that isn't already running.</summary>
+    public void StartAll(Project project)
+    {
+        foreach (var service in project.Services.ToArray())
+        {
+            Start(service);
+        }
+    }
+
+    public void StopAll(Project project)
+    {
+        foreach (var service in project.Services.ToArray())
+        {
+            Stop(service);
+        }
+    }
+
     public void StopAll(IEnumerable<Project> projects)
     {
         foreach (var project in projects)
