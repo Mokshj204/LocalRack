@@ -76,6 +76,8 @@ Open **Settings** from the Home page.
 - **Start LocalRack with Windows** — launches LocalRack when you sign in. It does not start any services by itself.
 - **Keep running in the system tray** — minimizing or closing the window hides LocalRack to the tray and your services keep running. Click the tray icon to reopen it; right-click it and choose **Exit LocalRack** to quit and stop all services. With both settings on, LocalRack starts quietly in the tray.
 
+- **Check for updates when LocalRack starts** — looks for a newer GitHub release a few seconds after launch and asks before doing anything. If you accept, LocalRack downloads the installer, checks its SHA-256 against the release's `SHA256SUMS.txt`, stops your services and runs setup. **Check now** does the same on demand. Copies that weren't installed with the setup program (the portable exe) open the release page instead.
+
 When tray mode is off, closing the window stops all running services and exits.
 
 ## Where your data lives
