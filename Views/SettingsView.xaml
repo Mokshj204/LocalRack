@@ -54,6 +54,34 @@
                               Checked="TrayToggle_OnChanged" Unchecked="TrayToggle_OnChanged" />
                 </Grid>
             </Border>
+
+            <TextBlock Text="UPDATES" FontSize="11" FontWeight="SemiBold" Margin="0,20,0,6"
+                       Foreground="{StaticResource SecondaryTextBrush}" />
+            <Border Background="{StaticResource CardBackgroundBrush}" BorderBrush="{StaticResource BorderBrush}"
+                    BorderThickness="1" CornerRadius="4" Padding="16,14">
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+                    <StackPanel Grid.Column="0" Margin="0,0,16,0">
+                        <TextBlock Text="Check for updates when LocalRack starts" FontWeight="SemiBold" />
+                        <TextBlock TextWrapping="Wrap" FontSize="12" Margin="0,3,0,0"
+                                   Foreground="{StaticResource SecondaryTextBrush}"
+                                   Text="Looks for a newer release on GitHub and asks before installing it. Nothing is installed without your confirmation." />
+                        <StackPanel Orientation="Horizontal" Margin="0,10,0,0">
+                            <Button x:Name="CheckNowButton" Content="Check now" Style="{StaticResource ButtonStyle}"
+                                    Padding="12,4" Click="CheckNowButton_OnClick" />
+                            <TextBlock x:Name="UpdateStatusText" FontSize="12" Margin="12,0,0,0" VerticalAlignment="Center"
+                                       TextWrapping="Wrap" Foreground="{StaticResource SecondaryTextBrush}" />
+                        </StackPanel>
+                    </StackPanel>
+                    <CheckBox x:Name="UpdateToggle" Grid.Column="1" VerticalAlignment="Top"
+                              Style="{StaticResource ToggleSwitchStyle}"
+                              AutomationProperties.Name="Check for updates when LocalRack starts"
+                              Checked="UpdateToggle_OnChanged" Unchecked="UpdateToggle_OnChanged" />
+                </Grid>
+            </Border>
         </StackPanel>
     </ScrollViewer>
 </UserControl>

@@ -201,6 +201,10 @@ public sealed partial class ServiceProcessManager
         };
 
         // Python block-buffers stdout when piped, which would delay logs; also force UTF-8 output.
+        // A GUI app inherits PATH from whatever launched it (usually Explorer), which can be stale
+        // or missing user entries. Rebuild it from the registry so tools like pnpm always resolve.
+        startInfo.Environment["PATH"] = BuildEffectivePath();
+
         startInfo.Environment["PYTHONUNBUFFERED"] = "1";
         startInfo.Environment["PYTHONIOENCODING"] = "utf-8";
 
@@ -238,9 +242,49 @@ public sealed partial class ServiceProcessManager
         return startInfo;
     }
 
+    /// <summary>
+    /// Machine PATH + user PATH read fresh from the registry, followed by any entries in this
+    /// process's own PATH that the registry doesn't have. Duplicates are dropped (case-insensitive).
+    /// </summary>
+    internal static string BuildEffectivePath()
+    {
+        var seen = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+        var entries = new List<string>();
+
+        foreach (var source in new[]
+                 {
+                     SafeGetPath(EnvironmentVariableTarget.Machine),
+                     SafeGetPath(EnvironmentVariableTarget.User),
+                     SafeGetPath(EnvironmentVariableTarget.Process)
+                 })
+        {
+            foreach (var raw in source.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
+            {
+                var entry = raw.Trim();
+                if (entry.Length == 0) continue;
+                if (seen.Add(entry.TrimEnd('\\', '/'))) entries.Add(entry);
+            }
+        }
+
+        return string.Join(Path.PathSeparator, entries);
+    }
+
+    private static string SafeGetPath(EnvironmentVariableTarget target)
+    {
+        try
+        {
+            // Machine/User targets read the registry and expand %VARS% in the value.
+            return Environment.GetEnvironmentVariable("PATH", target) ?? string.Empty;
+        }
+        catch (Exception)
+        {
+            return string.Empty;
+        }
+    }
+
     private static string ResolvePowerShell()
     {
-        var path = Environment.GetEnvironmentVariable("PATH") ?? string.Empty;
+        var path = BuildEffectivePath();
         foreach (var dir in path.Split(Path.PathSeparator, StringSplitOptions.RemoveEmptyEntries))
         {
             try

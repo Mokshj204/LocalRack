@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
@@ -21,6 +22,8 @@ public partial class MainWindow : Window
     private TrayIcon? _trayIcon;
     private bool _exitRequested;
     private bool _shutDown;
+    private bool _updateBusy;
+    private UpdateInfo? _pendingUpdate;
 
     public MainWindow()
     {
@@ -96,6 +99,130 @@ public partial class MainWindow : Window
             WindowState = WindowState.Normal;
         }
         Activate();
+
+        // An update found while hidden in the tray is offered the first time the window comes back.
+        if (_pendingUpdate is { } pending)
+        {
+            _pendingUpdate = null;
+            _ = OfferUpdateAsync(pending);
+        }
+    }
+
+    /// <summary>Quiet check shortly after launch; never throws and never interrupts a hidden window.</summary>
+    public async Task CheckForUpdatesOnStartupAsync()
+    {
+        try
+        {
+            await Task.Delay(TimeSpan.FromSeconds(5));
+            await CheckForUpdatesAsync(manual: false);
+        }
+        catch (Exception)
+        {
+            // an update check must never take the app down
+        }
+    }
+
+    /// <summary>Checks GitHub and offers the update. Returns a status line for the Settings page.</summary>
+    public async Task<string> CheckForUpdatesAsync(bool manual)
+    {
+        if (_updateBusy) return "An update is already in progress.";
+
+        UpdateInfo? update;
+        try
+        {
+            update = await UpdateService.CheckAsync();
+        }
+        catch (Exception ex)
+        {
+            return $"Couldn't check for updates: {ex.Message}";
+        }
+
+        var current = UpdateService.CurrentVersion;
+        if (update is null) return $"LocalRack {current} is up to date.";
+
+        if (!manual && !IsVisible)
+        {
+            _pendingUpdate = update;
+            return $"Version {update.Version} is available.";
+        }
+
+        await OfferUpdateAsync(update);
+        return $"Version {update.Version} is available (you have {current}).";
+    }
+
+    private async Task OfferUpdateAsync(UpdateInfo update)
+    {
+        if (_updateBusy) return;
+        _updateBusy = true;
+        try
+        {
+            var canInstall = UpdateService.IsInstalledCopy() && update.InstallerUrl is not null && update.ChecksumsUrl is not null;
+            var message = canInstall
+                ? $"LocalRack {update.Version} is available (you have {UpdateService.CurrentVersion}).\n\n" +
+                  "Updating downloads the installer, stops all running services and restarts LocalRack. Update now?"
+                : $"LocalRack {update.Version} is available (you have {UpdateService.CurrentVersion}).\n\n" +
+                  "This copy wasn't installed with the setup program, so it can't update itself. Open the download page?";
+
+            if (MessageBox.Show(this, message, AppPaths.AppName, MessageBoxButton.YesNo, MessageBoxImage.Information) != MessageBoxResult.Yes)
+            {
+                return;
+            }
+
+            if (!canInstall)
+            {
+                Process.Start(new ProcessStartInfo(update.ReleaseUrl) { UseShellExecute = true });
+                return;
+            }
+
+            await DownloadAndInstallAsync(update);
+        }
+        finally
+        {
+            _updateBusy = false;
+        }
+    }
+
+    private async Task DownloadAndInstallAsync(UpdateInfo update)
+    {
+        var originalTitle = Title;
+        string installer;
+        try
+        {
+            var progress = new Progress<double>(p => Title = $"{originalTitle} - downloading update {p:P0}");
+            installer = await UpdateService.DownloadInstallerAsync(update, progress);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, $"The update couldn't be downloaded: {ex.Message}", AppPaths.AppName,
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+        finally
+        {
+            Title = originalTitle;
+        }
+
+        // The installer refuses to run while LocalRack holds its "running" mutex, so let go of it first.
+        var app = (App)Application.Current;
+        app.ReleaseRunningLock();
+        try
+        {
+            Process.Start(new ProcessStartInfo(installer) { UseShellExecute = true });
+        }
+        catch (Win32Exception ex) when (ex.NativeErrorCode == 1223) // user declined the admin prompt
+        {
+            app.RestoreRunningLock();
+            return;
+        }
+        catch (Exception ex)
+        {
+            app.RestoreRunningLock();
+            MessageBox.Show(this, $"Couldn't start the installer: {ex.Message}", AppPaths.AppName,
+                MessageBoxButton.OK, MessageBoxImage.Warning);
+            return;
+        }
+
+        ExitApplication();
     }
 
     private void ExitApplication()
@@ -156,7 +283,7 @@ public partial class MainWindow : Window
             _settingsTab = new TabItem
             {
                 Style = (Style)FindResource("TabItemStyle"),
-                Content = new SettingsView()
+                Content = new SettingsView(() => CheckForUpdatesAsync(manual: true))
             };
             _settingsTab.Header = BuildTabHeader(title, () =>
             {

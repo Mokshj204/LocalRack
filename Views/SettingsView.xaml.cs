@@ -7,10 +7,12 @@ namespace LocalRack.Views;
 
 public partial class SettingsView : UserControl
 {
+    private readonly Func<Task<string>> _checkForUpdates;
     private bool _refreshing;
 
-    public SettingsView()
+    public SettingsView(Func<Task<string>> checkForUpdates)
     {
+        _checkForUpdates = checkForUpdates;
         InitializeComponent();
         var version = Assembly.GetExecutingAssembly().GetName().Version;
         VersionText.Text = $"{AppPaths.AppName} {version?.ToString(3)}  ·  Data: {AppPaths.DataDirectory}";
@@ -23,12 +25,46 @@ public partial class SettingsView : UserControl
         _refreshing = true;
         StartupToggle.IsChecked = StartupRegistration.IsEnabled();
         TrayToggle.IsChecked = SettingsStore.Current.KeepRunningInTray;
+        UpdateToggle.IsChecked = SettingsStore.Current.CheckForUpdates;
         _refreshing = false;
         var path = Environment.ProcessPath ?? string.Empty;
         var looksLikeDevBuild = path.Contains($"{System.IO.Path.DirectorySeparatorChar}bin{System.IO.Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
         StartupNoteText.Text = $"Launches: {path}" +
             (looksLikeDevBuild ? "\nThis is a development build; enable this from the published LocalRack.exe instead." : string.Empty);
         StartupNoteText.Visibility = Visibility.Visible;
+    }
+
+    private void UpdateToggle_OnChanged(object sender, RoutedEventArgs e)
+    {
+        if (_refreshing) return;
+        SettingsStore.Current.CheckForUpdates = UpdateToggle.IsChecked == true;
+        try
+        {
+            SettingsStore.Save();
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(Window.GetWindow(this)!, $"Couldn't save the setting: {ex.Message}",
+                AppPaths.AppName, MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+    }
+
+    private async void CheckNowButton_OnClick(object sender, RoutedEventArgs e)
+    {
+        CheckNowButton.IsEnabled = false;
+        UpdateStatusText.Text = "Checking...";
+        try
+        {
+            UpdateStatusText.Text = await _checkForUpdates();
+        }
+        catch (Exception ex)
+        {
+            UpdateStatusText.Text = $"Couldn't check for updates: {ex.Message}";
+        }
+        finally
+        {
+            CheckNowButton.IsEnabled = true;
+        }
     }
 
     private void TrayToggle_OnChanged(object sender, RoutedEventArgs e)

@@ -65,6 +65,26 @@ public partial class App : Application
             Name = "LocalRack activation listener"
         };
         listener.Start();
+
+#if !DEBUG
+        // Dev builds report a placeholder version, so they would always see an "update".
+        if (SettingsStore.Current.CheckForUpdates)
+        {
+            _ = window.CheckForUpdatesOnStartupAsync();
+        }
+#endif
+    }
+
+    /// <summary>Lets the installer proceed without asking the user to close LocalRack (it checks this mutex).</summary>
+    public void ReleaseRunningLock()
+    {
+        _runningMutex?.Dispose();
+        _runningMutex = null;
+    }
+
+    public void RestoreRunningLock()
+    {
+        _runningMutex ??= new Mutex(false, AppPaths.RunningMutexName);
     }
 
     protected override void OnExit(ExitEventArgs e)
