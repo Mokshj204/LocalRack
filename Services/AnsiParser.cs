@@ -82,7 +82,7 @@ public sealed partial class AnsiParser
 
         segments.Add(new LogSegment(
             text,
-            fg is { } f ? GetBrush(Readable(f), _dim) : (_dim ? GetBrush(C(0x1F, 0x1F, 0x1F), true) : null),
+            fg is { } f ? GetBrush(Readable(f), _dim) : (_dim ? GetBrush(ThemeManager.IsDark ? C(0xE6, 0xE6, 0xE6) : C(0x1F, 0x1F, 0x1F), true) : null),
             bg is { } b ? GetBrush(b, false) : null,
             _bold,
             _italic,
@@ -155,10 +155,18 @@ public sealed partial class AnsiParser
         return C(gray, gray, gray);
     }
 
-    /// <summary>Darkens colors that would be nearly invisible on the light console background.</summary>
+    /// <summary>Adjusts colors that would be nearly invisible on the current console background.</summary>
     private static Color Readable(Color c)
     {
         var luminance = (0.2126 * c.R + 0.7152 * c.G + 0.0722 * c.B) / 255.0;
+        if (ThemeManager.IsDark)
+        {
+            // Lift very dark colors (e.g. ANSI black/blue) toward a readable minimum on a dark console.
+            const double minimum = 0.45;
+            if (luminance >= minimum) return c;
+            var mix = (minimum - luminance) / (1 - luminance);
+            return C((byte)(c.R + (255 - c.R) * mix), (byte)(c.G + (255 - c.G) * mix), (byte)(c.B + (255 - c.B) * mix));
+        }
         if (luminance <= 0.7) return c;
         var factor = 0.7 / luminance;
         return C((byte)(c.R * factor), (byte)(c.G * factor), (byte)(c.B * factor));

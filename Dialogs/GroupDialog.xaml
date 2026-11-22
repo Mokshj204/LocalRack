@@ -1,0 +1,212 @@
+<Window x:Class="LocalRack.Dialogs.GroupDialog"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Height="600" Width="540"
+        MinHeight="440" MinWidth="480"
+        WindowStartupLocation="CenterOwner"
+        ShowInTaskbar="False"
+        Style="{StaticResource WindowStyle}">
+    <Window.Resources>
+        <!-- Chevron that points right when collapsed and down when expanded. -->
+        <Style x:Key="ChevronToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Width" Value="24" />
+            <Setter Property="Height" Value="24" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Bg" Background="Transparent" CornerRadius="3">
+                            <TextBlock x:Name="Glyph" Text="›" FontSize="18" FontWeight="SemiBold"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center" Margin="0,-3,0,0"
+                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                       RenderTransformOrigin="0.5,0.5">
+                                <TextBlock.RenderTransform>
+                                    <RotateTransform Angle="0" />
+                                </TextBlock.RenderTransform>
+                            </TextBlock>
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Glyph" Property="RenderTransform">
+                                    <Setter.Value>
+                                        <RotateTransform Angle="90" />
+                                    </Setter.Value>
+                                </Setter>
+                            </Trigger>
+                            <Trigger Property="IsMouseOver" Value="True">
+                                <Setter TargetName="Bg" Property="Background" Value="{DynamicResource HoverBrush}" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+
+        <!-- Small tick box used to include or exclude a service. -->
+        <Style x:Key="TickToggleStyle" TargetType="ToggleButton">
+            <Setter Property="Focusable" Value="False" />
+            <Setter Property="Cursor" Value="Hand" />
+            <Setter Property="Width" Value="18" />
+            <Setter Property="Height" Value="18" />
+            <Setter Property="Template">
+                <Setter.Value>
+                    <ControlTemplate TargetType="ToggleButton">
+                        <Border x:Name="Box" CornerRadius="3" BorderThickness="1"
+                                BorderBrush="{DynamicResource BorderBrush}"
+                                Background="{DynamicResource PanelBackgroundBrush}">
+                            <TextBlock x:Name="Tick" Text="✓" FontSize="12" FontWeight="Bold" Visibility="Collapsed"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"
+                                       Foreground="White" />
+                        </Border>
+                        <ControlTemplate.Triggers>
+                            <Trigger Property="IsChecked" Value="True">
+                                <Setter TargetName="Box" Property="Background" Value="#2F6FEB" />
+                                <Setter TargetName="Box" Property="BorderBrush" Value="#2F6FEB" />
+                                <Setter TargetName="Tick" Property="Visibility" Value="Visible" />
+                            </Trigger>
+                        </ControlTemplate.Triggers>
+                    </ControlTemplate>
+                </Setter.Value>
+            </Setter>
+        </Style>
+    </Window.Resources>
+
+    <Grid Margin="16">
+        <Grid.RowDefinitions>
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="*" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+            <RowDefinition Height="Auto" />
+        </Grid.RowDefinitions>
+
+        <TextBlock Grid.Row="0" Text="Group name" Margin="0,0,0,4" />
+        <TextBox Grid.Row="1" x:Name="NameTextBox" Style="{StaticResource TextBoxStyle}" Margin="0,0,0,14" />
+
+        <StackPanel Grid.Row="2" Margin="0,0,0,6">
+            <TextBlock Text="Start order" FontWeight="SemiBold" />
+            <TextBlock TextWrapping="Wrap" FontSize="12" Foreground="{DynamicResource SecondaryTextBrush}"
+                       Text="Projects start from the top down. Open a project with its arrow to set the order of its services, untick the ones you don't want, and add a wait to give a service time to come up before the next one starts. Stopping runs bottom to top." />
+        </StackPanel>
+
+        <Border Grid.Row="3" BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="3"
+                Background="{DynamicResource CardBackgroundBrush}">
+            <Grid>
+                <TextBlock x:Name="EmptyText" Margin="12" Foreground="{DynamicResource SecondaryTextBrush}"
+                           TextWrapping="Wrap"
+                           Text="Nothing here yet. Pick a project below and select Add; its services will show up underneath it." />
+                <ScrollViewer VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled">
+                    <ItemsControl x:Name="ProjectsItemsControl" Margin="4">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <StackPanel Margin="0,0,0,2">
+                                    <!-- Project header -->
+                                    <Grid Margin="2,4">
+                                        <Grid.ColumnDefinitions>
+                                            <ColumnDefinition Width="Auto" />
+                                            <ColumnDefinition Width="22" />
+                                            <ColumnDefinition Width="*" />
+                                            <ColumnDefinition Width="Auto" />
+                                        </Grid.ColumnDefinitions>
+                                        <ToggleButton Grid.Column="0" Style="{StaticResource ChevronToggleStyle}"
+                                                      IsChecked="{Binding IsExpanded, Mode=TwoWay}"
+                                                      ToolTip="Show or hide this project's services" />
+                                        <TextBlock Grid.Column="1" Text="{Binding Position}" VerticalAlignment="Center"
+                                                   Margin="4,0,0,0" Foreground="{DynamicResource SecondaryTextBrush}" />
+                                        <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <TextBlock Text="{Binding Name}" FontWeight="SemiBold"
+                                                       TextTrimming="CharacterEllipsis" />
+                                            <TextBlock Text="{Binding Summary, StringFormat='  ·  {0}'}" FontSize="12"
+                                                       Foreground="{DynamicResource SecondaryTextBrush}"
+                                                       VerticalAlignment="Center" />
+                                        </StackPanel>
+                                        <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center">
+                                            <Button Content="▲" ToolTip="Start this project earlier" Padding="6,2" Margin="0,0,3,0"
+                                                    Style="{StaticResource ButtonStyle}" Click="ProjectUpButton_OnClick" />
+                                            <Button Content="▼" ToolTip="Start this project later" Padding="6,2" Margin="0,0,3,0"
+                                                    Style="{StaticResource ButtonStyle}" Click="ProjectDownButton_OnClick" />
+                                            <Button Content="✕" ToolTip="Remove project from group" Padding="6,2"
+                                                    Style="{StaticResource ButtonStyle}" Click="ProjectRemoveButton_OnClick" />
+                                        </StackPanel>
+                                    </Grid>
+
+                                    <!-- Services of the project -->
+                                    <ItemsControl ItemsSource="{Binding Services}" Margin="30,0,0,6"
+                                                  Visibility="{Binding ServicesVisibility}">
+                                        <ItemsControl.ItemTemplate>
+                                            <DataTemplate>
+                                                <Grid Margin="0,2">
+                                                    <Grid.ColumnDefinitions>
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="22" />
+                                                        <ColumnDefinition Width="*" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                        <ColumnDefinition Width="Auto" />
+                                                    </Grid.ColumnDefinitions>
+                                                    <ToggleButton Grid.Column="0" Style="{StaticResource TickToggleStyle}"
+                                                                  IsChecked="{Binding IsIncluded, Mode=TwoWay}"
+                                                                  ToolTip="Start this service with the group" />
+                                                    <TextBlock Grid.Column="1" Text="{Binding Position}" VerticalAlignment="Center"
+                                                               Margin="6,0,0,0" FontSize="12"
+                                                               Foreground="{DynamicResource SecondaryTextBrush}" />
+                                                    <TextBlock Grid.Column="2" Text="{Binding Name}" VerticalAlignment="Center"
+                                                               TextTrimming="CharacterEllipsis" Opacity="{Binding Opacity}" />
+                                                    <StackPanel Grid.Column="3" Orientation="Horizontal" VerticalAlignment="Center"
+                                                                Margin="8,0" IsEnabled="{Binding IsIncluded}">
+                                                        <TextBlock Text="wait" Foreground="{DynamicResource SecondaryTextBrush}"
+                                                                   VerticalAlignment="Center" Margin="0,0,4,0" />
+                                                        <TextBox Text="{Binding DelayText, UpdateSourceTrigger=PropertyChanged}" Width="36"
+                                                                 TextAlignment="Center" Style="{StaticResource TextBoxStyle}"
+                                                                 ToolTip="Seconds to wait after this service starts before starting the next" />
+                                                        <TextBlock Text="s" Foreground="{DynamicResource SecondaryTextBrush}"
+                                                                   VerticalAlignment="Center" Margin="4,0,0,0" />
+                                                    </StackPanel>
+                                                    <StackPanel Grid.Column="4" Orientation="Horizontal" VerticalAlignment="Center">
+                                                        <Button Content="▲" ToolTip="Start earlier" Padding="6,2" Margin="0,0,3,0"
+                                                                Style="{StaticResource ButtonStyle}" Click="ServiceUpButton_OnClick" />
+                                                        <Button Content="▼" ToolTip="Start later" Padding="6,2"
+                                                                Style="{StaticResource ButtonStyle}" Click="ServiceDownButton_OnClick" />
+                                                    </StackPanel>
+                                                </Grid>
+                                            </DataTemplate>
+                                        </ItemsControl.ItemTemplate>
+                                    </ItemsControl>
+                                    <Border Height="1" Background="{DynamicResource BorderBrush}" Opacity="0.6" />
+                                </StackPanel>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                </ScrollViewer>
+            </Grid>
+        </Border>
+
+        <Grid Grid.Row="4" Margin="0,10,0,0">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*" />
+                <ColumnDefinition Width="Auto" />
+            </Grid.ColumnDefinitions>
+            <ComboBox x:Name="AddProjectComboBox" Grid.Column="0" Style="{StaticResource ComboBoxStyle}">
+                <ComboBox.ItemTemplate>
+                    <DataTemplate>
+                        <TextBlock Text="{Binding Name}" />
+                    </DataTemplate>
+                </ComboBox.ItemTemplate>
+            </ComboBox>
+            <Button x:Name="AddButton" Grid.Column="1" Content="Add project" Margin="8,0,0,0" Padding="12,0"
+                    Style="{StaticResource ButtonStyle}" Click="AddButton_OnClick" />
+        </Grid>
+
+        <TextBlock Grid.Row="5" x:Name="ErrorText" Foreground="{DynamicResource ErrorTextBrush}" Margin="0,8,0,0"
+                   Visibility="Collapsed" TextWrapping="Wrap" />
+
+        <StackPanel Grid.Row="6" Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,12,0,0">
+            <Button Content="Cancel" Width="80" Margin="0,0,8,0" IsCancel="True"
+                    Style="{StaticResource ButtonStyle}" />
+            <Button x:Name="OkButton" Content="Create" Width="80" IsDefault="True"
+                    Style="{StaticResource ButtonStyle}" Click="OkButton_OnClick" />
+        </StackPanel>
+    </Grid>
+</Window>

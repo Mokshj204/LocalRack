@@ -17,7 +17,7 @@
 
         <TextBlock Grid.Row="0" Text="Project name" Margin="0,0,0,4" />
         <TextBox Grid.Row="1" x:Name="NameTextBox" Style="{StaticResource TextBoxStyle}" />
-        <TextBlock Grid.Row="2" x:Name="ErrorText" Foreground="{StaticResource ErrorTextBrush}" Margin="0,6,0,0"
+        <TextBlock Grid.Row="2" x:Name="ErrorText" Foreground="{DynamicResource ErrorTextBrush}" Margin="0,6,0,0"
                    Visibility="Collapsed" TextWrapping="Wrap" />
 
         <StackPanel Grid.Row="4" Orientation="Horizontal" HorizontalAlignment="Right">

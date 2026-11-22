@@ -4,8 +4,9 @@
              xmlns:conv="clr-namespace:LocalRack.Converters">
     <UserControl.Resources>
         <conv:CountToVisibilityConverter x:Key="CountToVisibilityConverter" />
+        <BooleanToVisibilityConverter x:Key="BoolToVisibilityConverter" />
     </UserControl.Resources>
-    <DockPanel Background="{StaticResource WindowBackgroundBrush}">
+    <DockPanel Background="{DynamicResource WindowBackgroundBrush}">
         <Grid DockPanel.Dock="Top" Margin="16,16,16,8">
             <Grid.ColumnDefinitions>
                 <ColumnDefinition Width="Auto" />
@@ -16,27 +17,38 @@
                    Margin="0,0,12,0" VerticalAlignment="Center" />
             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                 <TextBlock Text="Vault" FontSize="20" FontWeight="SemiBold" />
-                <TextBlock Text="Click a project to open it in a tab." FontSize="12"
-                           Foreground="{StaticResource SecondaryTextBrush}" Margin="0,2,0,0" />
+                <TextBlock x:Name="SubtitleText" Text="Click a project to open it in a tab." FontSize="12"
+                           Foreground="{DynamicResource SecondaryTextBrush}" Margin="0,2,0,0" />
             </StackPanel>
             <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                <Border Background="{DynamicResource PanelBackgroundBrush}" BorderBrush="{DynamicResource BorderBrush}"
+                        BorderThickness="1" CornerRadius="5" Margin="0,0,10,0" VerticalAlignment="Center">
+                    <StackPanel Orientation="Horizontal">
+                        <RadioButton x:Name="ProjectsModeRadio" Content="Projects" GroupName="HomeMode" IsChecked="True"
+                                     Style="{StaticResource SegmentedButtonStyle}" Checked="ModeRadio_OnChecked" />
+                        <RadioButton x:Name="GroupsModeRadio" Content="Groups" GroupName="HomeMode"
+                                     Style="{StaticResource SegmentedButtonStyle}" Checked="ModeRadio_OnChecked" />
+                    </StackPanel>
+                </Border>
                 <Button Content="Settings" Margin="0,0,6,0"
                         Style="{StaticResource ButtonStyle}" Click="SettingsButton_OnClick" />
-                <Button Content="Add Project"
-                        Style="{StaticResource ButtonStyle}" Click="AddProjectButton_OnClick" />
+                <Button x:Name="AddButton" Content="Add Project"
+                        Style="{StaticResource ButtonStyle}" Click="AddButton_OnClick" />
             </StackPanel>
         </Grid>
 
         <TextBlock x:Name="EmptyText" DockPanel.Dock="Top" Margin="16,24,16,0"
-                   Foreground="{StaticResource SecondaryTextBrush}"
+                   Foreground="{DynamicResource SecondaryTextBrush}"
                    Text="No projects yet. Use &quot;Add Project&quot; to create one." />
 
+        <Grid>
         <ListBox x:Name="ProjectsListBox" Margin="16,0,16,16" BorderThickness="0" Background="Transparent"
                  ScrollViewer.HorizontalScrollBarVisibility="Disabled">
             <ListBox.ItemContainerStyle>
                 <Style TargetType="ListBoxItem">
                     <Setter Property="Margin" Value="0,0,0,8" />
                     <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
                     <Setter Property="Template">
                         <Setter.Value>
                             <ControlTemplate TargetType="ListBoxItem">
@@ -49,8 +61,8 @@
             <ListBox.ItemTemplate>
                 <DataTemplate>
                     <Border x:Name="Card"
-                            Background="{StaticResource CardBackgroundBrush}"
-                            BorderBrush="{StaticResource BorderBrush}"
+                            Background="{DynamicResource CardBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
                             BorderThickness="1"
                             CornerRadius="4"
                             Padding="14"
@@ -60,6 +72,9 @@
                             <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
                                 <MenuItem Header="Open" Click="OpenMenuItem_OnClick" />
                                 <MenuItem Header="Rename…" Click="RenameMenuItem_OnClick" />
+                                <MenuItem Header="{Binding PinLabel}" Click="PinMenuItem_OnClick" />
+                                <MenuItem Header="Move Up" IsEnabled="{Binding CanMoveUp}" Click="MoveUpMenuItem_OnClick" />
+                                <MenuItem Header="Move Down" IsEnabled="{Binding CanMoveDown}" Click="MoveDownMenuItem_OnClick" />
                                 <Separator />
                                 <MenuItem Header="Delete Project" Click="DeleteMenuItem_OnClick" />
                             </ContextMenu>
@@ -71,12 +86,17 @@
                                 <ColumnDefinition Width="Auto" />
                             </Grid.ColumnDefinitions>
                             <StackPanel Grid.Column="0" VerticalAlignment="Center">
-                                <TextBlock Text="{Binding Project.Name}" FontSize="15" FontWeight="SemiBold"
-                                           TextTrimming="CharacterEllipsis" />
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Project.Name}" FontSize="15" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="PINNED" FontSize="10" FontWeight="SemiBold" Margin="8,0,0,0"
+                                               VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}"
+                                               Visibility="{Binding IsPinned, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                </StackPanel>
                                 <TextBlock Text="{Binding ServiceCount, StringFormat='{}{0} service(s)'}"
-                                           Foreground="{StaticResource SecondaryTextBrush}" FontSize="12" Margin="0,2,0,0" />
+                                           Foreground="{DynamicResource SecondaryTextBrush}" FontSize="12" Margin="0,2,0,0" />
                             </StackPanel>
-                            <Border Grid.Column="1" Background="{StaticResource StatusRunningBrush}"
+                            <Border Grid.Column="1" Background="{DynamicResource StatusRunningBrush}"
                                     CornerRadius="8" Padding="8,3" Margin="0,0,12,0" VerticalAlignment="Center"
                                     Visibility="{Binding RunningCount, Converter={StaticResource CountToVisibilityConverter}}">
                                 <TextBlock Text="{Binding RunningCount, StringFormat='{}{0} running'}"
@@ -89,21 +109,108 @@
                                         IsEnabled="{Binding CanStopAll}" Click="StopAllButton_OnClick" />
                                 <Button Content="Open" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"
                                         Click="OpenButton_OnClick" />
+                                <Button Content="{Binding PinLabel}" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"
+                                        ToolTip="Pinned projects stay at the top" Click="PinButton_OnClick" />
+                                <Button Content="▲" Margin="0,0,2,0" Style="{StaticResource ButtonStyle}" ToolTip="Move up"
+                                        IsEnabled="{Binding CanMoveUp}" Click="MoveUpButton_OnClick" />
+                                <Button Content="▼" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}" ToolTip="Move down"
+                                        IsEnabled="{Binding CanMoveDown}" Click="MoveDownButton_OnClick" />
                                 <Button Content="Rename" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"
                                         Click="RenameButton_OnClick" />
                                 <Button Content="Delete" Style="{StaticResource ButtonStyle}"
-                                        Foreground="{StaticResource ErrorTextBrush}"
+                                        Foreground="{DynamicResource ErrorTextBrush}"
                                         Click="DeleteButton_OnClick" />
                             </StackPanel>
                         </Grid>
                     </Border>
                     <DataTemplate.Triggers>
                         <Trigger SourceName="Card" Property="IsMouseOver" Value="True">
-                            <Setter TargetName="Card" Property="BorderBrush" Value="{StaticResource StatusStoppedBrush}" />
+                            <Setter TargetName="Card" Property="BorderBrush" Value="{DynamicResource StatusStoppedBrush}" />
                         </Trigger>
                     </DataTemplate.Triggers>
                 </DataTemplate>
             </ListBox.ItemTemplate>
         </ListBox>
+        <ListBox x:Name="GroupsListBox" Margin="16,0,16,16" BorderThickness="0" Background="Transparent"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled" Visibility="Collapsed">
+            <ListBox.ItemContainerStyle>
+                <Style TargetType="ListBoxItem">
+                    <Setter Property="Margin" Value="0,0,0,8" />
+                    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+                    <Setter Property="Foreground" Value="{DynamicResource TextBrush}" />
+                    <Setter Property="Template">
+                        <Setter.Value>
+                            <ControlTemplate TargetType="ListBoxItem">
+                                <ContentPresenter />
+                            </ControlTemplate>
+                        </Setter.Value>
+                    </Setter>
+                </Style>
+            </ListBox.ItemContainerStyle>
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Border Background="{DynamicResource CardBackgroundBrush}"
+                            BorderBrush="{DynamicResource BorderBrush}"
+                            BorderThickness="1" CornerRadius="4" Padding="14">
+                        <Border.ContextMenu>
+                            <ContextMenu DataContext="{Binding PlacementTarget.DataContext, RelativeSource={RelativeSource Self}}">
+                                <MenuItem Header="Start Group" IsEnabled="{Binding CanStart}" Click="GroupStartMenuItem_OnClick" />
+                                <MenuItem Header="Stop Group" IsEnabled="{Binding CanStop}" Click="GroupStopMenuItem_OnClick" />
+                                <MenuItem Header="Edit…" Click="GroupEditMenuItem_OnClick" />
+                                <MenuItem Header="{Binding PinLabel}" Click="GroupPinMenuItem_OnClick" />
+                                <MenuItem Header="Move Up" IsEnabled="{Binding CanMoveUp}" Click="GroupMoveUpMenuItem_OnClick" />
+                                <MenuItem Header="Move Down" IsEnabled="{Binding CanMoveDown}" Click="GroupMoveDownMenuItem_OnClick" />
+                                <Separator />
+                                <MenuItem Header="Delete Group" Click="GroupDeleteMenuItem_OnClick" />
+                            </ContextMenu>
+                        </Border.ContextMenu>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*" />
+                                <ColumnDefinition Width="Auto" />
+                                <ColumnDefinition Width="Auto" />
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" VerticalAlignment="Center" Margin="0,0,12,0">
+                                <StackPanel Orientation="Horizontal">
+                                    <TextBlock Text="{Binding Name}" FontSize="15" FontWeight="SemiBold"
+                                               TextTrimming="CharacterEllipsis" />
+                                    <TextBlock Text="PINNED" FontSize="10" FontWeight="SemiBold" Margin="8,0,0,0"
+                                               VerticalAlignment="Center" Foreground="{DynamicResource SecondaryTextBrush}"
+                                               Visibility="{Binding IsPinned, Converter={StaticResource BoolToVisibilityConverter}}" />
+                                </StackPanel>
+                                <TextBlock Text="{Binding Summary}" TextWrapping="Wrap" FontSize="12" Margin="0,2,0,0"
+                                           Foreground="{DynamicResource SecondaryTextBrush}" />
+                                <TextBlock Text="{Binding Progress}" FontSize="12" FontWeight="SemiBold" Margin="0,4,0,0"
+                                           Visibility="{Binding HasProgress, Converter={StaticResource BoolToVisibilityConverter}}" />
+                            </StackPanel>
+                            <Border Grid.Column="1" Background="{DynamicResource StatusRunningBrush}"
+                                    CornerRadius="8" Padding="8,3" Margin="0,0,12,0" VerticalAlignment="Center"
+                                    Visibility="{Binding RunningServiceCount, Converter={StaticResource CountToVisibilityConverter}}">
+                                <TextBlock Text="{Binding RunningLabel}"
+                                           Foreground="#FAFAF7" FontSize="11" FontWeight="SemiBold" />
+                            </Border>
+                            <StackPanel Grid.Column="2" Orientation="Horizontal" VerticalAlignment="Center">
+                                <Button Content="Start Group" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"
+                                        IsEnabled="{Binding CanStart}" Click="GroupStartButton_OnClick" />
+                                <Button Content="Stop Group" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"
+                                        IsEnabled="{Binding CanStop}" Click="GroupStopButton_OnClick" />
+                                <Button Content="Edit" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"
+                                        Click="GroupEditButton_OnClick" />
+                                <Button Content="{Binding PinLabel}" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}"
+                                        Click="GroupPinButton_OnClick" />
+                                <Button Content="▲" Margin="0,0,2,0" Style="{StaticResource ButtonStyle}" ToolTip="Move up"
+                                        IsEnabled="{Binding CanMoveUp}" Click="GroupMoveUpButton_OnClick" />
+                                <Button Content="▼" Margin="0,0,6,0" Style="{StaticResource ButtonStyle}" ToolTip="Move down"
+                                        IsEnabled="{Binding CanMoveDown}" Click="GroupMoveDownButton_OnClick" />
+                                <Button Content="Delete" Style="{StaticResource ButtonStyle}"
+                                        Foreground="{DynamicResource ErrorTextBrush}"
+                                        Click="GroupDeleteButton_OnClick" />
+                            </StackPanel>
+                        </Grid>
+                    </Border>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+        </Grid>
     </DockPanel>
 </UserControl>

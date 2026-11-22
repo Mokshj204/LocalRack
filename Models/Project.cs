@@ -19,6 +19,18 @@ public sealed class Project : INotifyPropertyChanged
         }
     }
 
+    private bool _isPinned;
+    public bool IsPinned
+    {
+        get => _isPinned;
+        set
+        {
+            if (_isPinned == value) return;
+            _isPinned = value;
+            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(nameof(IsPinned)));
+        }
+    }
+
     public ObservableCollection<Service> Services { get; set; } = new();
 
     public event PropertyChangedEventHandler? PropertyChanged;

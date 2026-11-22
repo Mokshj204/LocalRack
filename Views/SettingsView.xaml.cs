@@ -1,6 +1,7 @@
 using System.Reflection;
 using System.Windows;
 using System.Windows.Controls;
+using LocalRack.Models;
 using LocalRack.Services;
 
 namespace LocalRack.Views;
@@ -26,12 +27,32 @@ public partial class SettingsView : UserControl
         StartupToggle.IsChecked = StartupRegistration.IsEnabled();
         TrayToggle.IsChecked = SettingsStore.Current.KeepRunningInTray;
         UpdateToggle.IsChecked = SettingsStore.Current.CheckForUpdates;
+        ThemeSystemRadio.IsChecked = SettingsStore.Current.Theme == ThemeMode.System;
+        ThemeLightRadio.IsChecked = SettingsStore.Current.Theme == ThemeMode.Light;
+        ThemeDarkRadio.IsChecked = SettingsStore.Current.Theme == ThemeMode.Dark;
         _refreshing = false;
         var path = Environment.ProcessPath ?? string.Empty;
         var looksLikeDevBuild = path.Contains($"{System.IO.Path.DirectorySeparatorChar}bin{System.IO.Path.DirectorySeparatorChar}", StringComparison.OrdinalIgnoreCase);
         StartupNoteText.Text = $"Launches: {path}" +
             (looksLikeDevBuild ? "\nThis is a development build; enable this from the published LocalRack.exe instead." : string.Empty);
         StartupNoteText.Visibility = Visibility.Visible;
+    }
+
+    private void ThemeRadio_OnChecked(object sender, RoutedEventArgs e)
+    {
+        if (_refreshing) return;
+        SettingsStore.Current.Theme = ReferenceEquals(sender, ThemeLightRadio) ? ThemeMode.Light
+            : ReferenceEquals(sender, ThemeDarkRadio) ? ThemeMode.Dark
+            : ThemeMode.System;
+        try
+        {
+            SettingsStore.Save(); // raises Changed, which ThemeManager applies immediately
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(Window.GetWindow(this)!, $"Couldn't save the setting: {ex.Message}",
+                AppPaths.AppName, MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
     }
 
     private void UpdateToggle_OnChanged(object sender, RoutedEventArgs e)

@@ -12,14 +12,14 @@
             <MenuItem Header="Delete Service" Click="DeleteServiceMenuItem_OnClick" />
         </ContextMenu>
     </UserControl.Resources>
-    <Grid Background="{StaticResource WindowBackgroundBrush}">
+    <Grid Background="{DynamicResource WindowBackgroundBrush}">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="290" MinWidth="250" />
             <ColumnDefinition Width="5" />
             <ColumnDefinition Width="*" />
         </Grid.ColumnDefinitions>
 
-        <DockPanel Grid.Column="0" Background="{StaticResource PanelBackgroundBrush}">
+        <DockPanel Grid.Column="0" Background="{DynamicResource PanelBackgroundBrush}">
             <Grid DockPanel.Dock="Top" Margin="10,10,10,6">
                 <Grid.ColumnDefinitions>
                     <ColumnDefinition Width="*" />
@@ -36,7 +36,7 @@
                 </StackPanel>
             </Grid>
             <TextBlock x:Name="EmptyText" DockPanel.Dock="Top" Margin="12,8" TextWrapping="Wrap"
-                       Foreground="{StaticResource SecondaryTextBrush}"
+                       Foreground="{DynamicResource SecondaryTextBrush}"
                        Text="No services yet. Use &quot;Add Service&quot; to define one." />
             <ListBox x:Name="ServicesListBox" Margin="6,0,6,6" BorderThickness="0" Background="Transparent"
                      ScrollViewer.HorizontalScrollBarVisibility="Disabled"
@@ -54,7 +54,7 @@
                             <StackPanel Grid.Column="1" VerticalAlignment="Center">
                                 <TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis" />
                                 <TextBlock Text="{Binding Command}" FontFamily="Consolas" FontSize="11"
-                                           Foreground="{StaticResource SecondaryTextBrush}"
+                                           Foreground="{DynamicResource SecondaryTextBrush}"
                                            TextTrimming="CharacterEllipsis" />
                             </StackPanel>
                             <Button Grid.Column="2" Padding="8,2" FontSize="11" Margin="6,0,0,0"
@@ -75,7 +75,7 @@
         </DockPanel>
 
         <GridSplitter Grid.Column="1" Width="5" HorizontalAlignment="Stretch"
-                      Background="{StaticResource BorderBrush}" />
+                      Background="{DynamicResource BorderBrush}" />
 
         <DockPanel Grid.Column="2" Margin="10">
             <Grid x:Name="LogHeader" DockPanel.Dock="Top" Margin="0,0,0,8">
@@ -105,13 +105,13 @@
                     <Grid.Resources>
                         <Style x:Key="DetailLabel" TargetType="TextBlock">
                             <Setter Property="FontSize" Value="11" />
-                            <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
                             <Setter Property="Margin" Value="0,1,10,0" />
                         </Style>
                         <Style x:Key="DetailValue" TargetType="TextBox">
                             <Setter Property="FontSize" Value="11" />
                             <Setter Property="FontFamily" Value="Consolas" />
-                            <Setter Property="Foreground" Value="{StaticResource SecondaryTextBrush}" />
+                            <Setter Property="Foreground" Value="{DynamicResource SecondaryTextBrush}" />
                             <Setter Property="Background" Value="Transparent" />
                             <Setter Property="BorderThickness" Value="0" />
                             <Setter Property="Padding" Value="0" />
@@ -136,10 +136,10 @@
                 </StackPanel>
             </Grid>
 
-            <Border BorderBrush="{StaticResource BorderBrush}" BorderThickness="1" CornerRadius="3">
+            <Border BorderBrush="{DynamicResource BorderBrush}" BorderThickness="1" CornerRadius="3">
                 <RichTextBox x:Name="LogView" IsReadOnly="True" IsUndoEnabled="False"
-                             Background="{StaticResource ConsoleBackgroundBrush}"
-                             Foreground="{StaticResource ConsoleTextBrush}"
+                             Background="{DynamicResource ConsoleBackgroundBrush}"
+                             Foreground="{DynamicResource ConsoleTextBrush}"
                              FontFamily="Consolas" FontSize="12" BorderThickness="0" Padding="4"
                              VerticalScrollBarVisibility="Auto" HorizontalScrollBarVisibility="Disabled"
                              SelectionBrush="#3B82F6"

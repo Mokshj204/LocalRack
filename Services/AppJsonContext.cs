@@ -6,6 +6,7 @@ using LocalRack.Models;
 namespace LocalRack.Services;
 
 [JsonSerializable(typeof(List<Project>))]
+[JsonSerializable(typeof(List<ProjectGroup>))]
 [JsonSerializable(typeof(UiState))]
 [JsonSerializable(typeof(AppSettings))]
 internal partial class AppJsonContext : JsonSerializerContext
