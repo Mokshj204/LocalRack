@@ -52,5 +52,9 @@ Name: "{autodesktop}\LocalRack"; Filename: "{app}\LocalRack.exe"; Tasks: desktop
 Root: HKCU; Subkey: "Software\Microsoft\Windows\CurrentVersion\Run"; ValueType: none; ValueName: "LocalRack"; Flags: dontcreatekey uninsdeletevalue
 
 [Run]
+; Launched through explorer.exe, not directly: a direct launch makes LocalRack a child of this
+; elevated setup process and it inherits setup's Windows Redirection Guard, so every service it
+; starts then fails to follow junctions (Node reports "UNKNOWN: unknown error, stat"). Explorer
+; hands the launch to the already-running shell, so LocalRack starts with Explorer as its parent.
 ; runasoriginaluser: launch unelevated, so services started from LocalRack don't run as admin.
-Filename: "{app}\LocalRack.exe"; Description: "{cm:LaunchProgram,LocalRack}"; Flags: nowait postinstall skipifsilent runasoriginaluser
+Filename: "{win}\explorer.exe"; Parameters: """{app}\LocalRack.exe"""; Description: "{cm:LaunchProgram,LocalRack}"; Flags: nowait postinstall skipifsilent runasoriginaluser
