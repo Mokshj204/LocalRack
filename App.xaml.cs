@@ -40,6 +40,7 @@ public partial class App : Application
 
         AppPaths.MigrateLegacyData();
         SettingsStore.Load();
+        ThemeManager.Initialize();
         StartupRegistration.RefreshPathIfEnabled();
 
         var window = new MainWindow();

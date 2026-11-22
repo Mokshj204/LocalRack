@@ -14,6 +14,9 @@ public partial class MainWindow : Window
 {
     private readonly ObservableCollection<Project> _projects;
     private readonly ProjectRepository _projectRepository = new();
+    private readonly GroupRepository _groupRepository = new();
+    private readonly ObservableCollection<ProjectGroup> _groups;
+    private readonly GroupRunner _groupRunner;
     private readonly UiStateRepository _uiStateRepository = new();
     private readonly ServiceProcessManager _processManager = new();
     private readonly HomeView _homeView;
@@ -30,14 +33,23 @@ public partial class MainWindow : Window
         InitializeComponent();
 
         _projects = _projectRepository.Load();
+        _groups = _groupRepository.Load();
+        var migrated = false;
+        foreach (var group in _groups) migrated |= group.ExpandProjectMembers(_projects);
+        if (migrated) _groupRepository.Save(_groups);
+        _groupRunner = new GroupRunner(_processManager, () => _projects);
 
-        _homeView = new HomeView(_projects);
+        _homeView = new HomeView(_projects, _groups);
         _homeView.OpenProjectRequested += project => OpenOrFocusTab(project, selectAfterOpen: true);
         _homeView.ProjectDeleting += OnProjectDeleting;
         _homeView.ProjectsChanged += SaveProjects;
         _homeView.SettingsRequested += OpenSettings;
         _homeView.StartAllRequested += project => _processManager.StartAll(project);
         _homeView.StopAllRequested += project => _processManager.StopAll(project);
+        _homeView.GroupsChanged += SaveGroups;
+        _homeView.GroupStartRequested += StartGroup;
+        _homeView.GroupStopRequested += group => _groupRunner.Stop(group);
+        _homeView.GroupDeleting += group => _groupRunner.Cancel(group);
         HomeTabItem.Content = _homeView;
 
         foreach (var id in _uiStateRepository.Load().OpenProjectIds)
@@ -51,7 +63,11 @@ public partial class MainWindow : Window
 
         RootTabControl.SelectedItem = HomeTabItem;
 
-        _processManager.RunningCountChanged += count => _trayIcon?.SetRunningCount(count);
+        _processManager.RunningCountChanged += count =>
+        {
+            _trayIcon?.SetRunningCount(count);
+            _homeView.RefreshGroups();
+        };
         SettingsStore.Changed += ApplyTraySetting;
         ApplyTraySetting();
         StateChanged += OnStateChanged;
@@ -237,6 +253,7 @@ public partial class MainWindow : Window
         if (_shutDown) return;
         _shutDown = true;
 
+        foreach (var group in _groups) _groupRunner.Cancel(group);
         _processManager.StopAll(_projects);
         SaveProjects();
         SaveUiState();
@@ -352,6 +369,45 @@ public partial class MainWindow : Window
             _processManager.Stop(service);
         }
         CloseTab(project);
+
+        // A deleted project can't be part of a group any more.
+        var changed = false;
+        foreach (var group in _groups)
+        {
+            changed |= group.Members.RemoveAll(m => m.ProjectId == project.Id) > 0;
+        }
+        if (changed)
+        {
+            SaveGroups();
+        }
+    }
+
+    private async void StartGroup(ProjectGroup group)
+    {
+        try
+        {
+            await _groupRunner.StartAsync(group);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, $"Couldn't start group '{group.Name}': {ex.Message}",
+                AppPaths.AppName, MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        _homeView.RefreshGroups();
+    }
+
+    private void SaveGroups()
+    {
+        try
+        {
+            _groupRepository.Save(_groups);
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, $"Couldn't save groups: {ex.Message}",
+                AppPaths.AppName, MessageBoxButton.OK, MessageBoxImage.Warning);
+        }
+        _homeView.RefreshGroups();
     }
 
     private void RootTabControl_OnSelectionChanged(object sender, SelectionChangedEventArgs e)

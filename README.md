@@ -10,6 +10,9 @@ LocalRack is a lightweight Windows app for running your local development servic
 - **One-click start and stop** — stopping a service shuts down its entire process tree, so no stray `node` or `python` process is left holding a port.
 - **Live, colored logs** — real-time output with full terminal colors, errors highlighted, and text you can select and copy like in a terminal.
 - **PowerShell or Command Prompt** — pick the shell per service, so commands work exactly as you would type them.
+- **Pin and reorder** — pin projects to keep them at the top and use the ▲ ▼ buttons to put them in the order you like. The order is remembered.
+- **Groups** — bundle several projects into a group, choose the order they start in (with an optional wait between each), and start or stop the whole group with one click from the **Groups** view on the Home page.
+- **Light and dark mode** — follows your Windows setting by default; switch to Light or Dark in **Settings > Appearance**.
 - **Tabs** — open several projects side by side; your open tabs come back the next time you launch.
 - **System tray and start with Windows** — optionally keep services running in the background with LocalRack tucked away in the tray.
 
@@ -65,6 +68,8 @@ In PowerShell, chain commands with `;`. In Command Prompt, use `&&`.
 
 - **Edit or delete a service** — double-click it, right-click it, or use the **Edit** and **Delete** buttons above its logs.
 - **Rename or delete a project** — use the buttons on its card on the Home page.
+- **Pin or reorder projects and groups** — use **Pin** and the ▲ ▼ buttons on a card. Pinned items always stay above unpinned ones.
+- **Create a group** — switch to **Groups** on the Home page and select **Add Group**. Pick the projects, set their order and how many seconds to wait after each one starts, then use **Start Group**. **Stop Group** stops the projects in reverse order and cancels a start that is still in progress.
 - **Copy from the logs** — drag to select, double-click a word, press Ctrl+A to select everything, then Ctrl+C or right-click **Copy**.
 - **Clear logs** — select **Clear Logs**. Each service keeps its most recent 2,000 lines.
 - **Closing a tab** only hides the project; its services keep running.
@@ -73,6 +78,7 @@ In PowerShell, chain commands with `;`. In Command Prompt, use `&&`.
 
 Open **Settings** from the Home page.
 
+- **Theme** — System (default, follows Windows), Light or Dark.
 - **Start LocalRack with Windows** — launches LocalRack when you sign in. It does not start any services by itself.
 - **Keep running in the system tray** — minimizing or closing the window hides LocalRack to the tray and your services keep running. Click the tray icon to reopen it; right-click it and choose **Exit LocalRack** to quit and stop all services. With both settings on, LocalRack starts quietly in the tray.
 
@@ -86,7 +92,8 @@ Everything is stored per user in `%APPDATA%\LocalRack`:
 
 | File | Contents |
 | --- | --- |
-| `projects.json` | Your projects and services. Safe to back up or edit by hand while LocalRack is closed. |
+| `projects.json` | Your projects and services (including pinned state and order). Safe to back up or edit by hand while LocalRack is closed. |
+| `groups.json` | Your project groups and their start order. |
 | `ui-state.json` | Which project tabs were open. |
 | `settings.json` | App preferences. |
 | `error.log` | Details of any unexpected error, if one occurs. |

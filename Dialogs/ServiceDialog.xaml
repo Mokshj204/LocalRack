@@ -41,7 +41,7 @@
             <TextBlock Grid.Column="0" Text="Command" VerticalAlignment="Center" />
             <StackPanel Grid.Column="1" Orientation="Horizontal">
                 <TextBlock Text="Run with" VerticalAlignment="Center" Margin="0,0,6,0"
-                           Foreground="{StaticResource SecondaryTextBrush}" />
+                           Foreground="{DynamicResource SecondaryTextBrush}" />
                 <ComboBox x:Name="ShellComboBox" Width="130" SelectionChanged="ShellComboBox_OnSelectionChanged">
                     <ComboBoxItem Content="PowerShell" />
                     <ComboBoxItem Content="Command Prompt" />
@@ -51,13 +51,13 @@
         <TextBox Grid.Row="5" x:Name="CommandTextBox" Margin="0,0,0,4" Style="{StaticResource TextBoxStyle}"
                  FontFamily="Consolas" />
         <TextBlock Grid.Row="6" x:Name="CommandHintText" TextWrapping="Wrap"
-                   Foreground="{StaticResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,6" />
+                   Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11" Margin="0,0,0,6" />
 
-        <TextBlock Grid.Row="7" x:Name="InfoText" Foreground="{StaticResource SecondaryTextBrush}" FontSize="11"
+        <TextBlock Grid.Row="7" x:Name="InfoText" Foreground="{DynamicResource SecondaryTextBrush}" FontSize="11"
                    Margin="0,0,0,6" Visibility="Collapsed" TextWrapping="Wrap"
                    Text="This service is running. Changes take effect the next time it starts." />
 
-        <TextBlock Grid.Row="8" x:Name="ErrorText" Foreground="{StaticResource ErrorTextBrush}"
+        <TextBlock Grid.Row="8" x:Name="ErrorText" Foreground="{DynamicResource ErrorTextBrush}"
                    VerticalAlignment="Top" Visibility="Collapsed" TextWrapping="Wrap" />
 
         <StackPanel Grid.Row="9" Orientation="Horizontal" HorizontalAlignment="Right">

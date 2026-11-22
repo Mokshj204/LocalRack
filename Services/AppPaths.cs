@@ -23,6 +23,7 @@ public static class AppPaths
         Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData), InstanceId);
 
     public static string ProjectsFile => Path.Combine(DataDirectory, "projects.json");
+    public static string GroupsFile => Path.Combine(DataDirectory, "groups.json");
     public static string UiStateFile => Path.Combine(DataDirectory, "ui-state.json");
     public static string ErrorLogFile => Path.Combine(DataDirectory, "error.log");
     public static string SettingsFile => Path.Combine(DataDirectory, "settings.json");
